@@ -38,19 +38,19 @@ pipeline {
 
         stage('Rolling Update no Kubernetes') {
             steps {
-                // kubectl set image dispara rolling update real (tag versionada garante detecção de mudança)
                 sh """
-                    kubectl set image deployment/todo-infnet \\
+                    kubectl --kubeconfig=/var/jenkins_home/.kube/config \
+                        set image deployment/todo-infnet \
                         todo-infnet=${IMAGE_NAME}:build-${BUILD_NUMBER}
                 """
-                sh "kubectl rollout status deployment/todo-infnet --timeout=300s"
+                sh "kubectl --kubeconfig=/var/jenkins_home/.kube/config rollout status deployment/todo-infnet --timeout=300s"
             }
         }
 
         stage('Verificar Deploy') {
             steps {
-                sh "kubectl get pods -o wide"
-                sh "kubectl get svc todo-app-service"
+                sh "kubectl --kubeconfig=/var/jenkins_home/.kube/config get pods -o wide"
+                sh "kubectl --kubeconfig=/var/jenkins_home/.kube/config get svc todo-app-service"
             }
         }
 
