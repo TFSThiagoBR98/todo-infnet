@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TODO — Infnet</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #222; min-height: 100vh; }
+    header { background: #1a56db; color: #fff; padding: 1rem 1.5rem; }
+    header h1 { font-size: 1.4rem; font-weight: 600; }
+    main { max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+    form { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
+    input[type=text] { flex: 1; padding: .6rem .8rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+    button { padding: .6rem 1.2rem; background: #1a56db; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+    button:hover { background: #1240a8; }
+    ul { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+    li { background: #fff; border: 1px solid #e2e2e2; border-radius: 8px; padding: .75rem 1rem; display: flex; align-items: center; gap: .75rem; }
+    li.done span.title { text-decoration: line-through; color: #888; }
+    li span.title { flex: 1; }
+    li button.del { background: #dc2626; padding: .3rem .7rem; font-size: .85rem; }
+    li button.del:hover { background: #b91c1c; }
+    li input[type=checkbox] { width: 1.1rem; height: 1.1rem; cursor: pointer; accent-color: #1a56db; }
+    .empty { color: #888; text-align: center; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+<header><h1>📝 TODO List — Infnet</h1></header>
+<main>
+  <form id="form">
+    <input id="input" type="text" placeholder="Nova tarefa..." required />
+    <button type="submit">Adicionar</button>
+  </form>
+  <ul id="list"></ul>
+  <p class="empty" id="empty" style="display:none">Nenhuma tarefa cadastrada.</p>
+</main>
+<script>
+  const listEl = document.getElementById('list');
+  const emptyEl = document.getElementById('empty');
+
+  function buildItem(t) {
+    const li = document.createElement('li');
+    if (t.done) li.classList.add('done');
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = t.done;
+    cb.dataset.id = t.id;
+
+    const span = document.createElement('span');
+    span.className = 'title';
+    span.textContent = t.title;
+
+    const del = document.createElement('button');
+    del.className = 'del';
+    del.textContent = 'Excluir';
+    del.dataset.id = t.id;
+
+    li.append(cb, span, del);
+    return li;
+  }
+
+  async function load() {
+    const res = await fetch('/api/todos');
+    const todos = await res.json();
+    listEl.replaceChildren(...todos.map(buildItem));
+    emptyEl.style.display = todos.length === 0 ? 'block' : 'none';
+  }
+
+  document.getElementById('form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const input = document.getElementById('input');
+    await fetch('/api/todos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: input.value.trim() })
+    });
+    input.value = '';
+    load();
+  });
+
+  listEl.addEventListener('change', async e => {
+    if (e.target.type !== 'checkbox') return;
+    await fetch(`/api/todos/${e.target.dataset.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ done: e.target.checked })
+    });
+    load();
+  });
+
+  listEl.addEventListener('click', async e => {
+    if (!e.target.classList.contains('del')) return;
+    await fetch(`/api/todos/${e.target.dataset.id}`, { method: 'DELETE' });
+    load();
+  });
+
+  load();
+</script>
+</body>
+</html>

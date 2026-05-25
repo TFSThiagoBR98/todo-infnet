@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: postgres
+  labels:
+    app: postgres-label
+spec:
+  containers:
+    - name: postgres
+      image: postgres:17-alpine
+      ports:
+        - containerPort: 5432
+      env:
+        - name: POSTGRES_DB
+          value: tododb
+        - name: POSTGRES_USER
+          value: todo
+        - name: POSTGRES_PASSWORD
+          value: todo123
+      volumeMounts:
+        - name: pgdata
+          mountPath: /var/lib/postgresql/data
+  volumes:
+    - name: pgdata
+      persistentVolumeClaim:
+        claimName: todo-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  labels:
+    app: postgres-label
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres-label
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pvc-writer
+spec:
+  restartPolicy: Never
+  containers:
+    - name: writer
+      image: alpine:latest
+      command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Arquivo criado em $(date)" > /data/registro.txt
+          echo "Projeto todo-infnet com PVC de 2Gi funcionando corretamente" >> /data/registro.txt
+          sleep 3600
+      volumeMounts:
+        - name: todo-volume
+          mountPath: /data
+  volumes:
+    - name: todo-volume
+      persistentVolumeClaim:
+        claimName: todo-pvc
