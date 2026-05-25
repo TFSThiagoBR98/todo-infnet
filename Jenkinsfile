@@ -5,6 +5,7 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         IMAGE_NAME             = 'tfsthiagobr98/todo-infnet'
         K8S_DIR                = 'k8s'
+        KUBECONFIG             = '/var/jenkins_home/.kube/config'
     }
 
     stages {
